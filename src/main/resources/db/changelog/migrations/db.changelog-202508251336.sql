@@ -1,5 +1,5 @@
 --liquibase formatted sql
---changeset gisela:202508151336
+--changeset gisela:202508251336
 --comment: create boards table
 
 CREATE TABLE boards (
