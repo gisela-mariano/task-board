@@ -1,0 +1,7 @@
+FROM mysql:8.0
+
+#ENV MYSQL_ROOT_PASSWORD=board
+#ENV MYSQL_USER=board
+#ENV MYSQL_DATABASE=task-board
+
+EXPOSE 3306
