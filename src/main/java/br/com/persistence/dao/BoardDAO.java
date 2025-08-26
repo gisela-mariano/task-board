@@ -66,7 +66,7 @@ public class BoardDAO {
 
         try (var statement = connection.prepareStatement(query)) {
             statement.setLong(1, id);
-            statement.executeQuery();
+            statement.executeUpdate();
         }
     }
 }

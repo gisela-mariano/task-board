@@ -1,5 +1,6 @@
 package br.com.service;
 
+import br.com.dto.BoardDetailsDTO;
 import br.com.persistence.dao.BoardColumnDAO;
 import br.com.persistence.dao.BoardDAO;
 import br.com.persistence.entity.BoardEntity;
@@ -28,5 +29,25 @@ public class BoardQueryService {
         }
 
         return Optional.empty();
+    }
+
+    public Optional<BoardDetailsDTO> showBoardDetails(final Long id) throws SQLException {
+        var dao = new BoardDAO(connection);
+        var boardColumnDao = new BoardColumnDAO(connection);
+
+        var optional = dao.findById(id);
+
+        if (optional.isPresent()) {
+            var entity = optional.get();
+
+            var columns = boardColumnDao.findByBoardIdWithDetails(entity.getId());
+
+            var dto = new BoardDetailsDTO(entity.getId(), entity.getName(), columns);
+
+            return Optional.of(dto);
+        }
+
+        return Optional.empty();
+
     }
 }
