@@ -1,7 +1,10 @@
 package br.com.ui;
 
+import br.com.persistence.entity.BoardColumnEntity;
 import br.com.persistence.entity.BoardEntity;
+import br.com.service.BoardColumnQueryService;
 import br.com.service.BoardQueryService;
+import br.com.service.CardQueryService;
 import lombok.AllArgsConstructor;
 
 import java.sql.SQLException;
@@ -18,7 +21,7 @@ public class BoardMenu {
     public void execute() {
         try {
 
-            System.out.printf("Você está acessando o board %s, selecione a opção desejada:", entity.getName());
+            System.out.printf("Você está acessando o board %s, selecione a opção desejada:\n", entity.getName());
 
             var option = -1;
 
@@ -90,9 +93,57 @@ public class BoardMenu {
         }
     }
 
-    private void showColumn() {
+    private void showColumn() throws SQLException {
+        var columnIds = entity.getBoardColumns().stream().map(BoardColumnEntity::getId).toList();
+        var selectedColumn = -1L;
+
+        while (!columnIds.contains(selectedColumn)) {
+            System.out.printf("Escolha uma coluna do board %s\n", entity.getName());
+
+            entity.getBoardColumns()
+                  .forEach(column -> System.out.printf(
+                          "%s - %s [%s]\n",
+                          column.getId(),
+                          column.getName(),
+                          column.getType()
+                  ));
+
+            selectedColumn = scanner.nextLong();
+        }
+
+        try (var connection = getConnection()) {
+            var column = new BoardColumnQueryService(connection).findById(selectedColumn);
+
+            column.ifPresent(col -> {
+                System.out.printf("Coluna %s tipo %s\n", col.getName(), col.getType());
+
+                col.getCards()
+                   .forEach(card -> System.out.printf(
+                           "Card %s - %s:\nDescrição: %s",
+                           card.getId(),
+                           card.getTitle(),
+                           card.getDescription()
+                   ));
+            });
+        }
     }
 
-    private void showCard() {
+    private void showCard() throws SQLException {
+        System.out.println("Informe o id do card que deseja visualizar");
+        var selectedCardId = scanner.nextLong();
+
+        try (var connection = getConnection()) {
+            new CardQueryService(connection).findById(selectedCardId).ifPresentOrElse(
+                    card -> {
+                        System.out.printf("Card %s - %s\n", card.id(), card.title());
+                        System.out.printf("Descrição: %s\n", card.description());
+                        System.out.println(card.isBlocked()
+                                           ? "Está bloqueado. Motivo " + card.blockReason()
+                                           : "Não está bloqueado");
+                        System.out.printf("Foi bloqueado %s vezes\n", card.blocksAmount());
+                        System.out.printf("No momento está na coluna %s - %s\n", card.columnId(), card.columnName());
+                    }, () -> System.out.printf("Não existe um card com o id %s\n", selectedCardId)
+            );
+        }
     }
 }
