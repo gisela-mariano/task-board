@@ -1,10 +1,13 @@
 package br.com.ui;
 
 import br.com.persistence.entity.BoardColumnEntity;
+import br.com.persistence.entity.BoardColumnTypeEnum;
 import br.com.persistence.entity.BoardEntity;
+import br.com.persistence.entity.CardEntity;
 import br.com.service.BoardColumnQueryService;
 import br.com.service.BoardQueryService;
 import br.com.service.CardQueryService;
+import br.com.service.CardService;
 import lombok.AllArgsConstructor;
 
 import java.sql.SQLException;
@@ -59,7 +62,20 @@ public class BoardMenu {
         }
     }
 
-    private void createCard() {
+    private void createCard() throws SQLException {
+        var card = new CardEntity();
+
+        System.out.println("Informe o título do card");
+        card.setTitle(scanner.next());
+
+        System.out.println("Informe a descrição do card");
+        card.setDescription(scanner.next());
+
+        card.setBoardColumn(entity.getInitialColumn());
+
+        try (var connection = getConnection()) {
+            new CardService(connection).create(card);
+        }
     }
 
     private void moveCardToNextColumn() {
@@ -119,7 +135,7 @@ public class BoardMenu {
 
                 col.getCards()
                    .forEach(card -> System.out.printf(
-                           "Card %s - %s:\nDescrição: %s",
+                           "Card %s - %s:\nDescrição: %s\n",
                            card.getId(),
                            card.getTitle(),
                            card.getDescription()
