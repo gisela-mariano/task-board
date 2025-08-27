@@ -86,4 +86,15 @@ public class CardDAO {
         }
         return Optional.empty();
     }
+
+    public void moveToColumn(final Long columnId, final Long cardId) throws SQLException {
+        var query = "UPDATE cards SET board_column_id = ? WHERE id = ?;";
+
+        try (var statement = connection.prepareStatement(query)) {
+            statement.setLong(1, columnId);
+            statement.setLong(2, cardId);
+
+            statement.executeUpdate();
+        }
+    }
 }

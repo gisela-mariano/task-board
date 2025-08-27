@@ -1,7 +1,7 @@
 package br.com.ui;
 
+import br.com.dto.BoardColumnInfoDTO;
 import br.com.persistence.entity.BoardColumnEntity;
-import br.com.persistence.entity.BoardColumnTypeEnum;
 import br.com.persistence.entity.BoardEntity;
 import br.com.persistence.entity.CardEntity;
 import br.com.service.BoardColumnQueryService;
@@ -78,7 +78,20 @@ public class BoardMenu {
         }
     }
 
-    private void moveCardToNextColumn() {
+    private void moveCardToNextColumn() throws SQLException {
+        System.out.println("Informe o id do card que deseja mover para a próxima coluna");
+        var cardId = scanner.nextLong();
+
+        var boardColumnsInfo = entity.getBoardColumns()
+                                     .stream()
+                                     .map(bc -> new BoardColumnInfoDTO(bc.getId(), bc.getOrder(), bc.getType()))
+                                     .toList();
+
+        try (var connection = getConnection()) {
+            new CardService(connection).moveToNextColumn(cardId,boardColumnsInfo);
+        } catch (RuntimeException e) {
+            System.out.println(e.getMessage());
+        }
     }
 
     private void blockCard() {
