@@ -2,6 +2,7 @@ package br.com.persistence.dao;
 
 import br.com.dto.BoardColumnDTO;
 import br.com.persistence.entity.BoardColumnEntity;
+import br.com.persistence.entity.CardEntity;
 import com.mysql.cj.jdbc.StatementImpl;
 import lombok.AllArgsConstructor;
 
@@ -9,6 +10,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static br.com.persistence.entity.BoardColumnTypeEnum.findByName;
 
@@ -34,12 +36,12 @@ public class BoardColumnDAO {
         }
     }
 
-    public List<BoardColumnEntity> findByBoardId(final Long id) throws SQLException {
+    public List<BoardColumnEntity> findByBoardId(final Long boardId) throws SQLException {
         List<BoardColumnEntity> entities = new ArrayList<>();
 
         var query = "SELECT id, name, `order`, type FROM board_columns WHERE board_id = ? ORDER BY `order`;";
         try (var statement = connection.prepareStatement(query)) {
-            statement.setLong(1, id);
+            statement.setLong(1, boardId);
             statement.executeQuery();
 
             var resultSet = statement.getResultSet();
@@ -58,26 +60,26 @@ public class BoardColumnDAO {
         }
     }
 
-    public List<BoardColumnDTO> findByBoardIdWithDetails(final Long id) throws SQLException {
+    public List<BoardColumnDTO> findByBoardIdWithDetails(final Long boardId) throws SQLException {
         List<BoardColumnDTO> dtos = new ArrayList<>();
 
         var query = """
-                        SELECT 
+                        SELECT
                             bc.id,
                             bc.name,
                             bc.type
                             COUNT(
                                 SELECT c.id FROM cards c WHERE c.board_column_id = bc.id
                             ) cards_amount
-                        FROM 
+                        FROM
                             board_columns bc
-                        WHERE 
-                            board_id = ? 
-                        ORDER BY 
+                        WHERE
+                            board_id = ?
+                        ORDER BY
                             `order`;
                     """;
         try (var statement = connection.prepareStatement(query)) {
-            statement.setLong(1, id);
+            statement.setLong(1, boardId);
             statement.executeQuery();
 
             var resultSet = statement.getResultSet();
@@ -93,6 +95,49 @@ public class BoardColumnDAO {
                 dtos.add(dto);
             }
             return dtos;
+        }
+    }
+
+    public Optional<BoardColumnEntity> findById(final Long id) throws SQLException {
+        var query = """
+                        SELECT
+                            bc.name,
+                            bc.type,
+                            c.id card_id,
+                            c.title,
+                            c.description
+                        FROM
+                            board_columns bc
+                        INNER JOIN
+                            cards c
+                        ON
+                            bc.id = c.board_column_id
+                        WHERE
+                            bc.id = ?;
+                    """;
+        try (var statement = connection.prepareStatement(query)) {
+            statement.setLong(1, id);
+            statement.executeQuery();
+
+            var resultSet = statement.getResultSet();
+
+            if (resultSet.next()) {
+                var entity = new BoardColumnEntity();
+
+                entity.setName(resultSet.getString("bc.name"));
+                entity.setType(findByName(resultSet.getString("bc.type")));
+
+                do {
+                    var card = new CardEntity();
+
+                    card.setId(resultSet.getLong("card_id"));
+                    card.setTitle(resultSet.getString("c.title"));
+                    card.setDescription(resultSet.getString("c.description"));
+
+                    entity.getCards().add(card);
+                } while (resultSet.next());
+            }
+            return Optional.empty();
         }
     }
 }
