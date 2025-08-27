@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static br.com.persistence.entity.BoardColumnTypeEnum.findByName;
+import static java.util.Objects.isNull;
 
 @AllArgsConstructor
 public class BoardColumnDAO {
@@ -67,9 +68,9 @@ public class BoardColumnDAO {
                         SELECT
                             bc.id,
                             bc.name,
-                            bc.type
-                            COUNT(
-                                SELECT c.id FROM cards c WHERE c.board_column_id = bc.id
+                            bc.type,
+                            (
+                                SELECT COUNT(c.id) FROM cards c WHERE c.board_column_id = bc.id
                             ) cards_amount
                         FROM
                             board_columns bc
@@ -108,7 +109,7 @@ public class BoardColumnDAO {
                             c.description
                         FROM
                             board_columns bc
-                        INNER JOIN
+                        LEFT JOIN
                             cards c
                         ON
                             bc.id = c.board_column_id
@@ -128,6 +129,8 @@ public class BoardColumnDAO {
                 entity.setType(findByName(resultSet.getString("bc.type")));
 
                 do {
+                    if (isNull(resultSet.getString("c.title"))) break;
+
                     var card = new CardEntity();
 
                     card.setId(resultSet.getLong("card_id"));
@@ -136,6 +139,8 @@ public class BoardColumnDAO {
 
                     entity.getCards().add(card);
                 } while (resultSet.next());
+
+                return Optional.of(entity);
             }
             return Optional.empty();
         }

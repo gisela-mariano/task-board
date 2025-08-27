@@ -8,6 +8,7 @@ import java.sql.SQLException;
 import java.util.Optional;
 
 import static br.com.persistence.converter.OffsetDateTimeConverter.toOffsetDateTime;
+import static java.util.Objects.nonNull;
 
 @AllArgsConstructor
 public class CardDAO {
@@ -23,8 +24,8 @@ public class CardDAO {
                         bcd.block_reason,
                         cd.board_column_id,
                         bcl.name,
-                        COUNT(
-                            SELECT sub_bcd.id FROM blocked_cards sub_bcd WHERE sub_bcd.card_id = cd.id
+                        (
+                            SELECT COUNT(sub_bcd.id) FROM blocked_cards sub_bcd WHERE sub_bcd.card_id = cd.id
                         ) blocks_amount
                     FROM
                         cards cd
@@ -52,7 +53,7 @@ public class CardDAO {
                         resultSet.getLong("cd.id"),
                         resultSet.getString("cd.title"),
                         resultSet.getString("cd.description"),
-                        resultSet.getString("bcd.block_reason").isEmpty(),
+                        nonNull(resultSet.getString("bcd.block_reason")),
                         toOffsetDateTime(resultSet.getTimestamp("bcd.blocked_at")),
                         resultSet.getString("bcd.block_reason"),
                         resultSet.getInt("blocks_amount"),
