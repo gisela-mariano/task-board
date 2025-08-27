@@ -1,6 +1,6 @@
 # Task Board
 
-O Task Board é uma impleaplicação de gerenciamento de tarefas, desenvolvida com foco em simplicidade, clareza e uso de boas práticas de programação orientada a objetos.
+O Task Board é uma aplicação de gerenciamento de tarefas, desenvolvida com foco em simplicidade, clareza e uso de boas práticas de programação orientada a objetos.
 
 ## Como o projeto foi construído
 
@@ -21,4 +21,5 @@ O Task Board é uma impleaplicação de gerenciamento de tarefas, desenvolvida c
 Este projeto foi idealizado para praticar e demonstrar:
 - Domínio da linguagem Java e conceitos de orientação a objetos
 - Organização de projetos em repositórios GitHub
+
 - Estruturação de código limpo
